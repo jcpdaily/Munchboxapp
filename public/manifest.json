@@ -1,0 +1,26 @@
+{
+  "name": "The Munch Box - Food Truck Ordering",
+  "short_name": "Munch Box",
+  "description": "Order fresh food from The Munch Box food truck for quick collection",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#a3e635",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["food", "business"],
+  "lang": "en-GB"
+}
