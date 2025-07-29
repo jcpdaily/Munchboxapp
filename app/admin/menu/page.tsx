@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { ArrowLeft, Plus, Edit, Trash2, X, LogOut } from "lucide-react"
+import { ArrowLeft, Plus, Edit, Trash2, X, LogOut } from 'lucide-react'
 import { getMenuCategories, getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from "@/lib/database"
 import type { MenuCategory, MenuItem } from "@/lib/supabase"
 import { useAdminAuth } from "@/lib/auth"
@@ -37,7 +37,6 @@ export default function AdminMenuPage() {
     base_price: "",
     category_id: "",
     has_options: false,
-    is_custom_builder: false,
   })
   const [itemOptions, setItemOptions] = useState<MenuItemOption[]>([])
 
@@ -69,7 +68,6 @@ export default function AdminMenuPage() {
         base_price: item.base_price.toString(),
         category_id: item.category_id.toString(),
         has_options: item.has_options,
-        is_custom_builder: item.is_custom_builder,
       })
       // Set existing options
       setItemOptions(
@@ -89,7 +87,6 @@ export default function AdminMenuPage() {
         base_price: "",
         category_id: categories[0]?.id.toString() || "",
         has_options: false,
-        is_custom_builder: false,
       })
       setItemOptions([])
     }
@@ -105,7 +102,6 @@ export default function AdminMenuPage() {
       base_price: "",
       category_id: "",
       has_options: false,
-      is_custom_builder: false,
     })
     setItemOptions([])
   }
@@ -160,7 +156,6 @@ export default function AdminMenuPage() {
       base_price: Number.parseFloat(formData.base_price),
       category_id: Number.parseInt(formData.category_id),
       has_options: formData.has_options,
-      is_custom_builder: formData.is_custom_builder,
     }
 
     // Validate base_price is a valid number
@@ -356,11 +351,7 @@ export default function AdminMenuPage() {
                             {item.has_options && (
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Has Options</span>
                             )}
-                            {item.is_custom_builder && (
-                              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                                Custom Builder
-                              </span>
-                            )}
+                            {/* Removed is_custom_builder badge */}
                           </div>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => handleOpenDialog(item)}>
@@ -464,17 +455,6 @@ export default function AdminMenuPage() {
                   className="rounded border-gray-300"
                 />
                 <Label htmlFor="has_options">Has size/option variations</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_custom_builder"
-                  checked={formData.is_custom_builder}
-                  onChange={(e) => setFormData({ ...formData, is_custom_builder: e.target.checked })}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor="is_custom_builder">Is custom builder item</Label>
               </div>
 
               {/* Options Section */}
