@@ -1,5 +1,15 @@
 import { supabase, type MenuCategory, type MenuItem, type Order } from "./supabase"
 
+// Add DailyRevenue type
+export interface DailyRevenue {
+  id: number
+  date: string
+  total_orders: number
+  total_revenue: number
+  created_at: string
+  updated_at: string
+}
+
 // Menu functions
 export async function getMenuCategories(): Promise<MenuCategory[]> {
   try {
@@ -219,6 +229,170 @@ export async function updateOrderStatus(orderId: number, status: Order["status"]
   }
 }
 
+// Check if daily revenue tracking is available (cached result)
+let dailyRevenueAvailable: boolean | null = null
+
+export async function isDailyRevenueAvailable(): Promise<boolean> {
+  // Return cached result if we already checked
+  if (dailyRevenueAvailable !== null) {
+    return dailyRevenueAvailable
+  }
+
+  try {
+    // Try a simple query to see if the table exists
+    const { error } = await supabase.from("daily_revenue").select("id").limit(1)
+
+    // If no error, table exists
+    if (!error) {
+      dailyRevenueAvailable = true
+      return true
+    }
+
+    // Check for specific "table does not exist" error
+    if (error.message && error.message.includes('relation "public.daily_revenue" does not exist')) {
+      dailyRevenueAvailable = false
+      return false
+    }
+
+    // For other errors, assume table exists but there's another issue
+    dailyRevenueAvailable = true
+    return true
+  } catch (error) {
+    console.warn("Could not check daily revenue availability:", error)
+    dailyRevenueAvailable = false
+    return false
+  }
+}
+
+// Fallback function to calculate today's revenue from orders table
+async function calculateTodayRevenueFromOrders(): Promise<{ totalOrders: number; totalRevenue: number }> {
+  try {
+    const today = new Date().toISOString().split("T")[0]
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select("total_amount")
+      .eq("collection_date", today)
+      .neq("status", "cancelled")
+
+    if (error) {
+      console.error("Error calculating today's revenue from orders:", error)
+      return { totalOrders: 0, totalRevenue: 0 }
+    }
+
+    const totalOrders = data?.length || 0
+    const totalRevenue = data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
+
+    return { totalOrders, totalRevenue }
+  } catch (error) {
+    console.error("Error in calculateTodayRevenueFromOrders:", error)
+    return { totalOrders: 0, totalRevenue: 0 }
+  }
+}
+
+// Daily revenue functions with improved error handling
+export async function getTodayRevenue(): Promise<{ totalOrders: number; totalRevenue: number }> {
+  // Check if daily revenue tracking is available first
+  const isAvailable = await isDailyRevenueAvailable()
+
+  if (!isAvailable) {
+    // Use fallback calculation from orders table
+    return await calculateTodayRevenueFromOrders()
+  }
+
+  try {
+    const today = new Date().toISOString().split("T")[0]
+
+    const { data, error } = await supabase
+      .from("daily_revenue")
+      .select("total_orders, total_revenue")
+      .eq("date", today)
+      .single()
+
+    if (error) {
+      // If no data found for today, return zeros
+      if (error.code === "PGRST116") {
+        return { totalOrders: 0, totalRevenue: 0 }
+      }
+
+      // For other errors, fall back to orders calculation
+      console.warn("Error fetching from daily_revenue, using fallback:", error)
+      return await calculateTodayRevenueFromOrders()
+    }
+
+    return {
+      totalOrders: data?.total_orders || 0,
+      totalRevenue: data?.total_revenue || 0,
+    }
+  } catch (error) {
+    console.error("Error in getTodayRevenue:", error)
+    // Fallback to calculating from orders table
+    return await calculateTodayRevenueFromOrders()
+  }
+}
+
+export async function getDailyRevenue(limit = 30): Promise<DailyRevenue[]> {
+  // Check if daily revenue tracking is available first
+  const isAvailable = await isDailyRevenueAvailable()
+
+  if (!isAvailable) {
+    console.warn("Daily revenue table not available")
+    return []
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("daily_revenue")
+      .select("*")
+      .order("date", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error("Error fetching daily revenue:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getDailyRevenue:", error)
+    return []
+  }
+}
+
+export async function getRevenueByDateRange(startDate: string, endDate: string): Promise<DailyRevenue[]> {
+  // Check if daily revenue tracking is available first
+  const isAvailable = await isDailyRevenueAvailable()
+
+  if (!isAvailable) {
+    console.warn("Daily revenue table not available")
+    return []
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("daily_revenue")
+      .select("*")
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("date", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching revenue by date range:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getRevenueByDateRange:", error)
+    return []
+  }
+}
+
+// Reset the cache when needed (call this after running the SQL script)
+export function resetDailyRevenueCache() {
+  dailyRevenueAvailable = null
+}
+
 // Admin functions for menu management
 export async function createMenuItem(item: {
   category_id: number
@@ -226,7 +400,6 @@ export async function createMenuItem(item: {
   description?: string
   base_price: number
   has_options?: boolean
-  is_custom_builder?: boolean
 }): Promise<MenuItem | null> {
   try {
     // Validate required fields
@@ -250,7 +423,7 @@ export async function createMenuItem(item: {
         description: item.description?.trim() || null,
         base_price: item.base_price,
         has_options: item.has_options || false,
-        is_custom_builder: item.is_custom_builder || false,
+        is_custom_builder: false, // Always false now
         display_order: 999, // Put new items at the end
       })
       .select(`
@@ -294,9 +467,7 @@ export async function updateMenuItem(id: number, updates: Partial<MenuItem>): Pr
     if (updates.has_options !== undefined) {
       cleanUpdates.has_options = updates.has_options
     }
-    if (updates.is_custom_builder !== undefined) {
-      cleanUpdates.is_custom_builder = updates.is_custom_builder
-    }
+    // Remove is_custom_builder from updates - we don't want to change this anymore
 
     const { error } = await supabase.from("menu_items").update(cleanUpdates).eq("id", id)
 
