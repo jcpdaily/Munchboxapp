@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install The Munch Box App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px; /* Wider for truck display */
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc; /* Light gray background */
+            color: #334155; /* Slate-800 equivalent */
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            border: 2px solid #a3e635; /* Lime-400 border */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            background: #a3e635; /* Lime-400 */
+            color: #334155; /* Slate-800 */
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 28px; /* Larger logo */
+            display: inline-block;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        h1 {
+            font-size: 36px; /* Larger main title */
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #334155;
+        }
+        .tagline {
+            font-size: 20px;
+            color: #64748b; /* Gray-600 */
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #334155;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title svg {
+            width: 28px;
+            height: 28px;
+            color: #a3e635; /* Lime-400 */
+        }
+        .app-link-box {
+            background: #e2e8f0; /* Gray-200 */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .app-link-box p {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #334155;
+        }
+        .app-link-box a {
+            font-size: 22px;
+            color: #1e40af; /* A darker blue for links */
+            text-decoration: none;
+            word-break: break-all; /* Ensures long URLs wrap */
+        }
+        .qr-code-placeholder {
+            width: 180px;
+            height: 180px;
+            background: #cbd5e1; /* Gray-300 */
+            margin: 20px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #475569; /* Gray-600 */
+            border-radius: 5px;
+            border: 1px dashed #64748b;
+        }
+        .device-section {
+            background: #f0fdf4; /* Light green background */
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #dcfce7; /* Lighter green border */
+        }
+        .device-section h3 {
+            font-size: 22px;
+            font-weight: bold;
+            color: #16a34a; /* Green-700 */
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .device-section h3 svg {
+            width: 24px;
+            height: 24px;
+            color: #16a34a;
+        }
+        .step-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .step-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 17px;
+            color: #475569; /* Gray-700 */
+        }
+        .step-list li:last-child {
+            margin-bottom: 0;
+        }
+        .step-number {
+            background: #a3e635; /* Lime-400 */
+            color: #334155; /* Slate-800 */
+            width: 28px;
+            height: 28px;
+            min-width: 28px; /* Ensure it doesn't shrink */
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 12px;
+        }
+        .success-message {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #16a34a; /* Green-700 */
+            margin-top: 15px;
+            font-size: 17px;
+        }
+        .success-message svg {
+            width: 20px;
+            height: 20px;
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .benefit-item {
+            background: #f8fafc; /* Light gray */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0; /* Gray-200 */
+        }
+        .benefit-item svg {
+            width: 40px;
+            height: 40px;
+            color: #a3e635; /* Lime-400 */
+            margin-bottom: 10px;
+        }
+        .benefit-item h4 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+        .benefit-item p {
+            font-size: 15px;
+            color: #64748b;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .footer p {
+            margin-bottom: 5px;
+        }
+    </style>
+    <!-- Lucide Icons (for display in browser, not for print) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">THE MUNCH BOX</div>
+            <h1><i data-lucide="smartphone"></i> Install Our App on Your Phone</h1>
+            <p class="tagline">Order ahead, skip the wait, and get your favourites faster — right from your home screen!</p>
+        </header>
+
+        <div class="app-link-box">
+            <p><i data-lucide="link"></i> App Link:</p>
+            <a href="https://TheMunchBox.vercel.app" target="_blank">TheMunchBox.vercel.app</a>
+            <p style="margin-top: 20px; font-size: 16px;">
+                <i data-lucide="qr-code"></i> Scan the QR Code Below to Get Started:
+            </p>
+            <div class="qr-code-placeholder">
+                [YOUR QR CODE HERE]
+                <br>
+                (Link to TheMunchBox.vercel.app)
+            </div>
+        </div>
+
+        <div class="device-section">
+            <h3><i data-lucide="apple"></i> For iPhone (Apple)</h3>
+            <ul class="step-list">
+                <li><span class="step-number">1</span> Open Safari and scan the QR code or visit the link above.</li>
+                <li><span class="step-number">2</span> Tap the Share icon (square with arrow at the bottom).</li>
+                <li><span class="step-number">3</span> Scroll down and tap “Add to Home Screen”.</li>
+                <li><span class="step-number">4</span> Tap “Add” in the top right.</li>
+            </ul>
+            <div class="success-message">
+                <i data-lucide="check-circle"></i> The app will now appear on your home screen like a regular app.
+            </div>
+        </div>
+
+        <div class="device-section">
+            <h3><i data-lucide="android"></i> For Android</h3>
+            <ul class="step-list">
+                <li><span class="step-number">1</span> Open Chrome, scan the QR code or go to the link.</li>
+                <li><span class="step-number">2</span> Tap the 3-dot menu (top-right).</li>
+                <li><span class="step-number">3</span> Tap “Add to Home screen” or “Install App”.</li>
+                <li><span class="step-number">4</span> Tap “Install” when prompted.</li>
+            </ul>
+            <div class="success-message">
+                <i data-lucide="check-circle"></i> The app icon will now be available on your phone’s home screen.
+            </div>
+        </div>
+
+        <div class="section-title">
+            <i data-lucide="lightbulb"></i> Why Use the App?
+        </div>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <i data-lucide="clock"></i>
+                <h4>Order Ahead</h4>
+                <p>Avoid waiting in line during busy hours.</p>
+            </div>
+            <div class="benefit-item">
+                <i data-lucide="zap"></i>
+                <h4>Fast Reorders</h4>
+                <p>Access your favourites instantly for quick ordering.</p>
+            </div>
+            <div class="benefit-item">
+                <i data-lucide="check-circle"></i>
+                <h4>Always Up-to-Date</h4>
+                <p>No app store updates needed, always get the latest menu.</p>
+            </div>
+            <div class="benefit-item">
+                <i data-lucide="hard-drive"></i>
+                <h4>Tiny & Lightweight</h4>
+                <p>Doesn't take up much storage space on your phone.</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Fresh Food • Great Taste • Quick Service</p>
+            <p>Need help? Call: 07825368920</p>
+            <p>Old Brighton Road, Crawley, RH11 0PR</p>
+        </footer>
+    </div>
+</body>
+</html>

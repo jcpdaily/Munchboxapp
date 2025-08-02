@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { ArrowLeft, Plus, Edit, Trash2, X, LogOut } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Trash2, X, LogOut } from "lucide-react"
 import { getMenuCategories, getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from "@/lib/database"
 import type { MenuCategory, MenuItem } from "@/lib/supabase"
 import { useAdminAuth } from "@/lib/auth"

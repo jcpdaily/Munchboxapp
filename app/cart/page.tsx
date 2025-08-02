@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { Minus, Plus, Trash2 } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useState } from "react"
 import React from "react"
