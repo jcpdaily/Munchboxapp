@@ -11,13 +11,18 @@ export async function POST(req: NextRequest) {
   try {
     const { amount } = await req.json()
 
+    // Log the received amount for debugging
+    console.log("Received amount for Payment Intent:", amount)
+
     // Validate the amount
     if (typeof amount !== "number" || amount <= 0) {
+      console.error("Invalid amount provided:", amount)
       return NextResponse.json({ error: "Invalid amount provided." }, { status: 400 })
     }
 
     // Stripe expects amount in cents (or smallest currency unit)
     const amountInCents = Math.round(amount * 100)
+    console.log("Amount in cents:", amountInCents)
 
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
@@ -33,9 +38,18 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    console.log("Payment Intent created successfully. Client Secret:", paymentIntent.client_secret)
     return NextResponse.json({ clientSecret: paymentIntent.client_secret })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating Payment Intent:", error)
+    // Log specific Stripe error details if available
+    if (error.type === "StripeCardError") {
+      console.error("Stripe Card Error:", error.message, error.code, error.decline_code)
+    } else if (error.type === "StripeInvalidRequestError") {
+      console.error("Stripe Invalid Request Error:", error.message, error.param)
+    } else if (error.type === "StripeAPIError") {
+      console.error("Stripe API Error:", error.message, error.statusCode)
+    }
     // Provide a more generic error message to the client for security
     return NextResponse.json({ error: "Failed to create payment intent." }, { status: 500 })
   }
