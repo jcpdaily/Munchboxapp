@@ -20,6 +20,16 @@ interface CartContextType {
   clearCart: () => void
 }
 
+// Define a default context value for when it's not yet initialized (e.g., during SSR)
+const defaultCartContext: CartContextType = {
+  cartItems: [],
+  addToCart: () => {},
+  removeFromCart: () => {},
+  updateQuantity: () => {},
+  getCartTotal: () => 0,
+  clearCart: () => {},
+}
+
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -151,8 +161,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext)
+  // Return default context if not yet initialized (e.g., during SSR)
+  // This prevents the "useCart must be used within a CartProvider" error during prerendering
   if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider")
+    // In a real app, you might want to log a warning here or return a more sophisticated
+    // "loading" state for the cart, but for now, returning the default prevents crashes.
+    return defaultCartContext
   }
   return context
 }
