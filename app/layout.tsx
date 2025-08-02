@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+import { ErrorBoundary } from "@/components/error-boundary" // Import the ErrorBoundary
 
 export const metadata: Metadata = {
   title: "The Munch Box",
@@ -35,10 +36,12 @@ html {
         `}</style>
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <ErrorBoundary>
+          {" "}
+          {/* Wrap children with ErrorBoundary */}
+          <Providers>{children}</Providers>
+        </ErrorBoundary>
       </body>
     </html>
   )
 }
-
-// This is a new test comment to force a redeployment.
