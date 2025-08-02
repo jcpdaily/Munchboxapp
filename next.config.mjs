@@ -18,12 +18,6 @@ const nextConfig = {
   output: 'standalone',
   // Compress responses
   compress: true,
-  // Enable SWC minification
-  swcMinify: true,
-  // Optimize fonts
-  optimizeFonts: true,
-  // Production optimizations
-  productionBrowserSourceMaps: false,
   // Security headers
   async headers() {
     return [
