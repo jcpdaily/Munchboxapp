@@ -4,15 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Minus, Plus, Trash2 } from "lucide-react"
+import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useCart } from "@/hooks/use-cart"
 import { useState } from "react"
 import React from "react"
-import { createOrder } from "@/lib/database"
 import { MobileHeader } from "@/components/mobile-header"
 import { EmptyState } from "@/components/empty-state"
-import { LoadingSpinner } from "@/components/loading-spinner"
 import { useToast } from "@/components/toast"
+import { Elements } from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
+import { CheckoutForm } from "@/components/checkout-form"
+import { useRouter } from "next/navigation" // Import useRouter
+
+// Make sure to call `loadStripe` outside of a component’s render to avoid
+// recreating the Stripe object on every render.
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+console.log("Stripe Promise:", stripePromise)
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart()
@@ -22,9 +30,10 @@ export default function CartPage() {
     phone: "",
     notes: "",
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false) // This state is now primarily for the CheckoutForm
   const [collectionTime, setCollectionTime] = useState("")
   const [isOutsideHours, setIsOutsideHours] = useState(false)
+  const router = useRouter() // Initialize useRouter
 
   // Check if we're currently open and can take orders
   const checkIfOpen = () => {
@@ -108,81 +117,25 @@ export default function CartPage() {
     setIsOutsideHours(!checkIfOpen())
   }, [])
 
-  const handleSubmitOrder = async () => {
-    if (!customerInfo.name.trim() || !customerInfo.phone.trim()) {
-      addToast({
-        type: "error",
-        title: "Missing Information",
-        description: "Please fill in your name and phone number",
-      })
-      return
-    }
+  const handleOrderSuccess = (orderNumber: string, collectionTime: string) => {
+    addToast({
+      type: "success",
+      title: "Order Placed Successfully!",
+      description: `Your order number is ${orderNumber}. Please collect today at ${collectionTime}.`,
+      duration: 8000,
+    })
+    clearCart() // Clear cart after successful order
+    setCustomerInfo({ name: "", phone: "", notes: "" })
+    setCollectionTime("")
+    router.push(`/order-success?orderNumber=${orderNumber}&collectionTime=${collectionTime}`)
+  }
 
-    if (!collectionTime) {
-      addToast({
-        type: "error",
-        title: "Collection Time Required",
-        description: "Please select a collection time",
-      })
-      return
-    }
-
-    if (isOutsideHours || !checkIfOpen()) {
-      addToast({
-        type: "error",
-        title: "Currently Closed",
-        description: "Sorry, we are currently closed. Please place your order during opening hours.",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      // Prepare order data
-      const orderData = {
-        customer_name: customerInfo.name.trim(),
-        customer_phone: customerInfo.phone.trim(),
-        collection_time: collectionTime,
-        collection_date: getTodayDateString(),
-        special_instructions: customerInfo.notes.trim() || undefined,
-        total_amount: getCartTotal(),
-        items: cartItems.map((item) => ({
-          menu_item_id: item.id,
-          item_name: item.name,
-          selected_option: item.selectedOption,
-          unit_price: item.price,
-          quantity: item.quantity,
-          total_price: item.price * item.quantity,
-        })),
-      }
-
-      // Create order in database
-      const order = await createOrder(orderData)
-
-      if (order) {
-        addToast({
-          type: "success",
-          title: "Order Placed Successfully!",
-          description: `Your order number is ${order.order_number}. Please collect today at ${collectionTime}.`,
-          duration: 8000,
-        })
-        clearCart()
-        setCustomerInfo({ name: "", phone: "", notes: "" })
-        setCollectionTime("")
-      } else {
-        throw new Error("Failed to create order")
-      }
-    } catch (error) {
-      console.error("Error submitting order:", error)
-      addToast({
-        type: "error",
-        title: "Order Failed",
-        description: "Sorry, there was an error submitting your order. Please try again or call us directly.",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+  const handlePaymentError = (message: string) => {
+    addToast({
+      type: "error",
+      title: "Payment Failed",
+      description: message,
+    })
   }
 
   const availableTimes = generateTodayCollectionTimes()
@@ -331,7 +284,7 @@ export default function CartPage() {
                       id="collectionTime"
                       value={collectionTime}
                       onChange={(e) => setCollectionTime(e.target.value)}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting} // Keep this disabled state for customer info fields
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Select collection time for today</option>
@@ -363,37 +316,46 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={handleSubmitOrder}
-                  disabled={
-                    isSubmitting ||
-                    isOutsideHours ||
-                    availableTimes.length === 0 ||
-                    !collectionTime ||
-                    !customerInfo.name.trim() ||
-                    !customerInfo.phone.trim()
-                  }
-                  className="w-full bg-lime-400 hover:bg-lime-500 text-slate-800 font-bold text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <LoadingSpinner size="sm" />
-                      Submitting Order...
-                    </div>
-                  ) : isOutsideHours || availableTimes.length === 0 ? (
-                    new Date().getDay() === 0 ? (
-                      "Closed on Sundays"
-                    ) : (
-                      "Closed - See Opening Hours Above"
-                    )
-                  ) : !collectionTime ? (
-                    "Select Collection Time"
-                  ) : !customerInfo.name.trim() || !customerInfo.phone.trim() ? (
-                    "Fill in Required Details"
-                  ) : (
-                    `Place Order - £${getCartTotal().toFixed(2)}`
-                  )}
-                </Button>
+                {/* Stripe Payment Form */}
+                {stripePromise && (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      mode: "payment",
+                      amount: Math.round(getCartTotal() * 100), // Amount in cents
+                      currency: "gbp",
+                      appearance: {
+                        theme: "stripe",
+                        variables: {
+                          colorPrimary: "#a3e635", // lime-400
+                          colorText: "#334155", // slate-800
+                          colorBackground: "#ffffff",
+                          colorDanger: "#ef4444",
+                          fontFamily: "Inter, sans-serif",
+                        },
+                      },
+                    }}
+                  >
+                    <CheckoutForm
+                      customerInfo={customerInfo}
+                      collectionTime={collectionTime}
+                      collectionDate={getTodayDateString()}
+                      onOrderSuccess={handleOrderSuccess}
+                      onPaymentError={handlePaymentError}
+                      totalAmount={getCartTotal()}
+                      isOutsideHours={isOutsideHours}
+                      availableTimes={availableTimes}
+                      // The disabled prop here is passed to the CheckoutForm, which then controls its internal button
+                      disabled={
+                        isOutsideHours ||
+                        availableTimes.length === 0 ||
+                        !collectionTime ||
+                        !customerInfo.name.trim() ||
+                        !customerInfo.phone.trim()
+                      }
+                    />
+                  </Elements>
+                )}
               </CardContent>
             </Card>
           </div>
