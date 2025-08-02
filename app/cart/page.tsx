@@ -13,14 +13,15 @@ import { EmptyState } from "@/components/empty-state"
 import { useToast } from "@/components/toast"
 import { Elements } from "@stripe/react-stripe-js"
 import { loadStripe } from "@stripe/stripe-js"
-import { CheckoutForm } from "@/components/checkout-form"
+import { CheckoutForm } from "@/components/checkout-form" // Ensure this import is present
 import { useRouter } from "next/navigation" // Import useRouter
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the Stripe object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-console.log("Stripe Promise:", stripePromise)
+// Add this new console log to see if the promise is created
+console.log("Stripe Promise (after loadStripe call):", stripePromise)
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart()
